@@ -290,16 +290,27 @@ export function AssistedReader({ settings, customTexts }) {
         {/* Syllable Colorized or Standard Render */}
         {settings.colorizeSyllables ? (
           <div>
-            {colorized.map((item) => {
-              if (item.type === 'space') return item.content;
-              return (
-                <span key={item.key} className="reader-word" style={{ marginRight: `${settings.wordSpacing}px` }}>
-                  {item.syllables.map((syllable, sIdx) => (
-                    <span key={sIdx} className={syllable.colorClass}>{syllable.text}</span>
-                  ))}
-                </span>
-              );
-            })}
+            {(() => {
+              let wIdx = 0;
+              return colorized.map((item) => {
+                if (item.type === 'space') return item.content;
+                const isHighlighted = wIdx === highlightWordIndex;
+                wIdx++;
+                return (
+                  <span
+                    key={item.key}
+                    className={`reader-word ${isHighlighted ? 'highlighted' : ''}`}
+                    style={{ marginRight: `${settings.wordSpacing}px` }}
+                    onClick={() => ttsService.speak(item.content, { voiceURI: selectedVoiceURI, pitch, rate: speechRate })}
+                    title="Cliquer pour prononcer ce mot"
+                  >
+                    {item.syllables.map((syllable, sIdx) => (
+                      <span key={sIdx} className={syllable.colorClass}>{syllable.text}</span>
+                    ))}
+                  </span>
+                );
+              });
+            })()}
           </div>
         ) : (
           <div>

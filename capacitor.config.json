@@ -1,0 +1,6 @@
+{
+  "appId": "com.izaia.lireplus",
+  "appName": "IZAIA Lire Plus",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

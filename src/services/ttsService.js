@@ -114,12 +114,40 @@ class TtsService {
     utterance.pitch = pitch;
 
     utterance.onboundary = (event) => {
+      if (this.fallbackTimer) {
+        clearInterval(this.fallbackTimer);
+        this.fallbackTimer = null;
+      }
       if (event.name === 'word' && this.onBoundaryHandler) {
         this.onBoundaryHandler(event.charIndex, event.charLength);
       }
     };
 
+    // Fallback timer for online browser voices that don't emit boundary events
+    if (this.fallbackTimer) clearInterval(this.fallbackTimer);
+    let charAcc = 0;
+    const wordsList = cleanedText.split(/\s+/);
+    let wordIdx = 0;
+    const intervalMs = Math.max(180, (60000 / 150) / rate); // ~150 WPM default adjusted by rate
+
+    this.fallbackTimer = setInterval(() => {
+      if (!this.isSpeaking || wordIdx >= wordsList.length) {
+        clearInterval(this.fallbackTimer);
+        this.fallbackTimer = null;
+        return;
+      }
+      if (this.onBoundaryHandler) {
+        this.onBoundaryHandler(charAcc, wordsList[wordIdx].length);
+      }
+      charAcc += wordsList[wordIdx].length + 1;
+      wordIdx++;
+    }, intervalMs);
+
     utterance.onend = () => {
+      if (this.fallbackTimer) {
+        clearInterval(this.fallbackTimer);
+        this.fallbackTimer = null;
+      }
       this.isSpeaking = false;
       if (this.onEndHandler) {
         this.onEndHandler();
@@ -128,6 +156,10 @@ class TtsService {
 
     utterance.onerror = (err) => {
       console.error('TTS Error:', err);
+      if (this.fallbackTimer) {
+        clearInterval(this.fallbackTimer);
+        this.fallbackTimer = null;
+      }
       this.isSpeaking = false;
       if (this.onEndHandler) {
         this.onEndHandler();
@@ -138,11 +170,11 @@ class TtsService {
     this.synth.speak(utterance);
   }
 
-  speakSlowly(text, options = {}) {
-    this.speak(text, { ...options, rate: 0.55 });
-  }
-
   stop() {
+    if (this.fallbackTimer) {
+      clearInterval(this.fallbackTimer);
+      this.fallbackTimer = null;
+    }
     if (this.synth) {
       this.synth.cancel();
       this.isSpeaking = false;
