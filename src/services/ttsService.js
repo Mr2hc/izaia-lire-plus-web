@@ -117,43 +117,60 @@ class TtsService {
       utterance.voice = voiceToUse;
     }
 
-    utterance.rate = rate;
-    utterance.pitch = pitch;
+    let hasNativeBoundary = false;
 
     utterance.onboundary = (event) => {
-      if (this.fallbackTimer) {
-        clearInterval(this.fallbackTimer);
-        this.fallbackTimer = null;
-      }
-      if (event.name === 'word' && this.onBoundaryHandler) {
-        this.onBoundaryHandler(event.charIndex, event.charLength);
+      if (event.name === 'word') {
+        hasNativeBoundary = true;
+        if (this.fallbackTimeout) {
+          clearTimeout(this.fallbackTimeout);
+          this.fallbackTimeout = null;
+        }
+        if (this.onBoundaryHandler) {
+          this.onBoundaryHandler(event.charIndex, event.charLength || 0);
+        }
       }
     };
 
-    // Fallback timer for online browser voices that don't emit boundary events
-    if (this.fallbackTimer) clearInterval(this.fallbackTimer);
-    let charAcc = 0;
+    // Adaptive Proportional Fallback Engine (proportional to word character length)
+    if (this.fallbackTimeout) clearTimeout(this.fallbackTimeout);
     const wordsList = cleanedText.split(/\s+/);
+    let charAcc = 0;
     let wordIdx = 0;
-    const intervalMs = Math.max(180, (60000 / 150) / rate); // ~150 WPM default adjusted by rate
 
-    this.fallbackTimer = setInterval(() => {
-      if (!this.isSpeaking || wordIdx >= wordsList.length) {
-        clearInterval(this.fallbackTimer);
-        this.fallbackTimer = null;
-        return;
-      }
+    const scheduleNextWord = () => {
+      if (!this.isSpeaking || wordIdx >= wordsList.length) return;
+      if (hasNativeBoundary) return; // Native browser speech boundary is active, no fallback needed
+
+      const currentWord = wordsList[wordIdx];
       if (this.onBoundaryHandler) {
-        this.onBoundaryHandler(charAcc, wordsList[wordIdx].length);
+        this.onBoundaryHandler(charAcc, currentWord.length);
       }
-      charAcc += wordsList[wordIdx].length + 1;
+
+      charAcc += currentWord.length + 1;
       wordIdx++;
-    }, intervalMs);
+
+      if (wordIdx < wordsList.length && !hasNativeBoundary) {
+        // Calculate exact word duration based on character count and speech rate
+        const baseWpm = 135 * rate;
+        const msPerChar = 60000 / (baseWpm * 5.5);
+        const duration = Math.max(160, Math.round((currentWord.length + 1) * msPerChar));
+
+        this.fallbackTimeout = setTimeout(scheduleNextWord, duration);
+      }
+    };
+
+    // Start fallback after 250ms delay if no native boundary event arrived
+    this.fallbackTimeout = setTimeout(() => {
+      if (!hasNativeBoundary) {
+        scheduleNextWord();
+      }
+    }, 250);
 
     utterance.onend = () => {
-      if (this.fallbackTimer) {
-        clearInterval(this.fallbackTimer);
-        this.fallbackTimer = null;
+      if (this.fallbackTimeout) {
+        clearTimeout(this.fallbackTimeout);
+        this.fallbackTimeout = null;
       }
       this.isSpeaking = false;
       if (this.onEndHandler) {
@@ -163,9 +180,9 @@ class TtsService {
 
     utterance.onerror = (err) => {
       console.error('TTS Error:', err);
-      if (this.fallbackTimer) {
-        clearInterval(this.fallbackTimer);
-        this.fallbackTimer = null;
+      if (this.fallbackTimeout) {
+        clearTimeout(this.fallbackTimeout);
+        this.fallbackTimeout = null;
       }
       this.isSpeaking = false;
       if (this.onEndHandler) {
@@ -178,9 +195,9 @@ class TtsService {
   }
 
   stop() {
-    if (this.fallbackTimer) {
-      clearInterval(this.fallbackTimer);
-      this.fallbackTimer = null;
+    if (this.fallbackTimeout) {
+      clearTimeout(this.fallbackTimeout);
+      this.fallbackTimeout = null;
     }
     if (this.synth) {
       this.synth.cancel();

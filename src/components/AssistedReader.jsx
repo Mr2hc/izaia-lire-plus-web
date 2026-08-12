@@ -48,8 +48,14 @@ export function AssistedReader({ profile, settings, customTexts }) {
       let charAcc = 0;
       for (let i = 0; i < words.length; i++) {
         const wordLen = words[i].length;
-        if (charIndex >= charAcc && charIndex < charAcc + wordLen + 1) {
+        if (charIndex >= charAcc && charIndex <= charAcc + wordLen + 2) {
           setHighlightWordIndex(i);
+          setTimeout(() => {
+            const activeEl = readerRef.current?.querySelector('.reader-word.highlighted');
+            if (activeEl) {
+              activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            }
+          }, 10);
           break;
         }
         charAcc += wordLen + 1;
