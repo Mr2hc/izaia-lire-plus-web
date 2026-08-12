@@ -132,7 +132,17 @@ export function AssistedReader({ profile, settings, customTexts }) {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {isReading && (
+            <div className="audio-visualizer" title="Lecture en cours...">
+              <div className="audio-bar" />
+              <div className="audio-bar" />
+              <div className="audio-bar" />
+              <div className="audio-bar" />
+              <div className="audio-bar" />
+            </div>
+          )}
+
           <button
             className="btn btn-primary"
             onClick={() => startTTS(false)}

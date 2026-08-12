@@ -65,10 +65,10 @@ class TtsService {
     this.onEndHandler = handler;
   }
 
-  // Pre-process text to remove Gutenberg/BeQ headers, ISBNs, page numbers & code artifacts
+  // Pre-process text to remove headers, page numbers & prevent spelling of uppercase words
   cleanTextForSpeech(text) {
     if (!text) return '';
-    return text
+    let cleaned = text
       // Remove BeQ / Gutenberg headers
       .replace(/Les fables de Jean de La Fontaine BeQ \d+/gi, '')
       .replace(/La Bibliothèque électronique du Québec/gi, '')
@@ -78,6 +78,13 @@ class TtsService {
       // Remove multiple spaces and newlines
       .replace(/\s+/g, ' ')
       .trim();
+
+    // Convert ALL-CAPS words (like IZAIA, LINA, CE1) to Titlecase/lowercase so Web Speech API doesn't spell them out
+    cleaned = cleaned.replace(/\b[A-ZÀÂÉÈÊËÎÏÔÛÙY]{2,}\b/g, (match) => {
+      return match.charAt(0) + match.slice(1).toLowerCase();
+    });
+
+    return cleaned;
   }
 
   speak(text, options = {}) {
