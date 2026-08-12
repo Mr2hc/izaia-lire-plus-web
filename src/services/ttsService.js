@@ -1,13 +1,14 @@
 class TtsService {
   constructor() {
-    this.synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
+    this.synth = typeof window !== 'undefined' && 'speechSynthesis' in window
+      ? window.speechSynthesis : null;
     this.voices = [];
     this.frenchVoices = [];
     this.selectedVoiceURI = null;
     this.onBoundaryHandler = null;
     this.onEndHandler = null;
     this.isSpeaking = false;
-
+    this._timers = [];
     if (this.synth) {
       this.loadVoices();
       if (this.synth.onvoiceschanged !== undefined) {
@@ -16,178 +17,144 @@ class TtsService {
     }
   }
 
-  isSupported() {
-    return !!this.synth;
-  }
+  isSupported() { return !!this.synth; }
 
   loadVoices() {
     if (!this.synth) return;
     this.voices = this.synth.getVoices();
-
-    // Filter and score French voices by quality
-    const fr = this.voices.filter(v => v.lang.toLowerCase().startsWith('fr') || v.lang.toLowerCase() === 'fr_fr');
-
-    // Score higher natural / neural / online / high quality voices
+    const fr = this.voices.filter(v =>
+      v.lang.toLowerCase().startsWith('fr') || v.lang.toLowerCase() === 'fr_fr'
+    );
     fr.sort((a, b) => {
-      const getScore = (v) => {
-        const name = v.name.toLowerCase();
-        let score = 0;
-        if (name.includes('natural') || name.includes('naturel')) score += 100;
-        if (name.includes('online') || name.includes('en ligne')) score += 80;
-        if (name.includes('google')) score += 60;
-        if (name.includes('premium') || name.includes('enhanced')) score += 50;
-        if (name.includes('denise') || name.includes('henri') || name.includes('audrey') || name.includes('thomas')) score += 40;
-        if (v.localService === false) score += 30; // Browser cloud natural voice
-        return score;
+      const score = (v) => {
+        const n = v.name.toLowerCase();
+        let s = 0;
+        if (n.includes('natural') || n.includes('naturel')) s += 100;
+        if (n.includes('online') || n.includes('en ligne'))  s += 80;
+        if (n.includes('google'))                             s += 60;
+        if (n.includes('premium') || n.includes('enhanced')) s += 50;
+        if (n.includes('denise') || n.includes('thomas') ||
+            n.includes('henri') || n.includes('audrey'))    s += 40;
+        if (v.localService === false)                        s += 30;
+        return s;
       };
-      return getScore(b) - getScore(a);
+      return score(b) - score(a);
     });
-
     this.frenchVoices = fr;
   }
 
   getFrenchVoices() {
-    if (this.frenchVoices.length === 0) {
-      this.loadVoices();
-    }
+    if (this.frenchVoices.length === 0) this.loadVoices();
     return this.frenchVoices;
   }
 
-  setVoice(voiceURI) {
-    this.selectedVoiceURI = voiceURI;
+  setVoice(voiceURI) { this.selectedVoiceURI = voiceURI; }
+  setBoundaryHandler(handler) { this.onBoundaryHandler = handler; }
+  setEndHandler(handler) { this.onEndHandler = handler; }
+
+  _clearTimers() {
+    this._timers.forEach(id => clearTimeout(id));
+    this._timers = [];
   }
 
-  setBoundaryHandler(handler) {
-    this.onBoundaryHandler = handler;
-  }
-
-  setEndHandler(handler) {
-    this.onEndHandler = handler;
-  }
-
-  // Pre-process text to remove headers, page numbers & prevent spelling of uppercase words
   cleanTextForSpeech(text) {
     if (!text) return '';
-    let cleaned = text
-      // Remove BeQ / Gutenberg headers
+    let t = text
       .replace(/Les fables de Jean de La Fontaine BeQ \d+/gi, '')
-      .replace(/La Bibliothèque électronique du Québec/gi, '')
-      .replace(/Collection À tous les vents Volume \d+ : version \d+\.\d+ \d+/gi, '')
-      // Remove bracketed numbers like [1], [p. 12]
       .replace(/\[\d+\]/g, '')
-      // Remove multiple spaces and newlines
       .replace(/\s+/g, ' ')
       .trim();
-
-    // Convert ALL-CAPS words (like IZAIA, LINA, CE1) to Titlecase/lowercase so Web Speech API doesn't spell them out
-    cleaned = cleaned.replace(/\b[A-ZÀÂÉÈÊËÎÏÔÛÙY]{2,}\b/g, (match) => {
-      return match.charAt(0) + match.slice(1).toLowerCase();
-    });
-
-    return cleaned;
+    // Eviter l'epellation des mots en majuscules (IZAIA => Izaia)
+    t = t.replace(/\b[A-Z]{2,}\b/g, m => m.charAt(0) + m.slice(1).toLowerCase());
+    return t;
   }
 
   speak(text, options = {}) {
     if (!this.synth) return;
-
     this.stop();
-
     const cleanedText = this.cleanTextForSpeech(text);
     if (!cleanedText) return;
 
-    const rate = options.rate || 0.85;
+    const rate  = options.rate  || 0.85;
     const pitch = options.pitch || 1.0;
 
     const utterance = new SpeechSynthesisUtterance(cleanedText);
-    utterance.lang = 'fr-FR';
+    utterance.lang  = 'fr-FR';
+    utterance.rate  = rate;
+    utterance.pitch = pitch;
 
-    // Pick user selected voice or best scored natural voice
     let voiceToUse = null;
     if (options.voiceURI) {
       voiceToUse = this.voices.find(v => v.voiceURI === options.voiceURI);
     } else if (this.selectedVoiceURI) {
       voiceToUse = this.voices.find(v => v.voiceURI === this.selectedVoiceURI);
     }
+    if (!voiceToUse && this.frenchVoices.length > 0) voiceToUse = this.frenchVoices[0];
+    if (voiceToUse) utterance.voice = voiceToUse;
 
-    if (!voiceToUse && this.frenchVoices.length > 0) {
-      voiceToUse = this.frenchVoices[0];
-    }
+    // Les voix cloud Google emettent onboundary AVANT que l'audio soit entendu
+    // (latence reseau de 200-400ms) -> on les ignore et on utilise nos propres timers
+    const isCloudVoice = voiceToUse ? (voiceToUse.localService === false) : false;
 
-    if (voiceToUse) {
-      utterance.voice = voiceToUse;
-    }
+    const wordsList = cleanedText.split(/\s+/);
+    const avgLen    = wordsList.reduce((s, w) => s + w.length, 0) / (wordsList.length || 1);
 
-    let hasNativeBoundary = false;
+    // Calibrage du WPM reel (voix Google cloud lisent ~18% plus vite que 'rate')
+    const wpmBase      = isCloudVoice ? 158 : 128;
+    const effectiveWpm = wpmBase * rate;
+    const msPerWord    = 60000 / effectiveWpm;
+
+    // Duree de chaque mot proportionnelle a sa longueur (mots longs = plus de temps)
+    const wordDurations = wordsList.map(w => {
+      const ratio = (w.length + 0.5) / (avgLen + 0.5);
+      return Math.max(100, Math.round(msPerWord * ratio));
+    });
+
+    let useNativeBoundary = false;
 
     utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        hasNativeBoundary = true;
-        if (this.fallbackTimeout) {
-          clearTimeout(this.fallbackTimeout);
-          this.fallbackTimeout = null;
-        }
+      if (event.name !== 'word') return;
+      // Voix locale : les onboundary sont fiables et synchrones
+      if (!isCloudVoice) {
+        useNativeBoundary = true;
+        this._clearTimers();
         if (this.onBoundaryHandler) {
           this.onBoundaryHandler(event.charIndex, event.charLength || 0);
         }
       }
+      // Voix cloud : on ignore onboundary (en avance sur l'audio reel)
     };
 
-    // Adaptive Proportional Fallback Engine (proportional to word character length)
-    if (this.fallbackTimeout) clearTimeout(this.fallbackTimeout);
-    const wordsList = cleanedText.split(/\s+/);
+    // Planification du surlignage mot par mot avec delai initial calibre
     let charAcc = 0;
-    let wordIdx = 0;
+    let delay   = isCloudVoice ? 220 : 150;
 
-    const scheduleNextWord = () => {
-      if (!this.isSpeaking || wordIdx >= wordsList.length) return;
-      if (hasNativeBoundary) return; // Native browser speech boundary is active, no fallback needed
-
-      const currentWord = wordsList[wordIdx];
-      if (this.onBoundaryHandler) {
-        this.onBoundaryHandler(charAcc, currentWord.length);
-      }
-
-      charAcc += currentWord.length + 1;
-      wordIdx++;
-
-      if (wordIdx < wordsList.length && !hasNativeBoundary) {
-        // Calculate exact word duration based on character count and speech rate
-        const baseWpm = 135 * rate;
-        const msPerChar = 60000 / (baseWpm * 5.5);
-        const duration = Math.max(160, Math.round((currentWord.length + 1) * msPerChar));
-
-        this.fallbackTimeout = setTimeout(scheduleNextWord, duration);
-      }
-    };
-
-    // Start fallback after 250ms delay if no native boundary event arrived
-    this.fallbackTimeout = setTimeout(() => {
-      if (!hasNativeBoundary) {
-        scheduleNextWord();
-      }
-    }, 250);
+    wordsList.forEach((word, i) => {
+      const ci  = charAcc;
+      const len = word.length;
+      const id = setTimeout(() => {
+        if (!this.isSpeaking) return;
+        if (!useNativeBoundary && this.onBoundaryHandler) {
+          this.onBoundaryHandler(ci, len);
+        }
+      }, delay);
+      this._timers.push(id);
+      delay   += wordDurations[i];
+      charAcc += word.length + 1;
+    });
 
     utterance.onend = () => {
-      if (this.fallbackTimeout) {
-        clearTimeout(this.fallbackTimeout);
-        this.fallbackTimeout = null;
-      }
+      this._clearTimers();
       this.isSpeaking = false;
-      if (this.onEndHandler) {
-        this.onEndHandler();
-      }
+      if (this.onEndHandler) this.onEndHandler();
     };
 
     utterance.onerror = (err) => {
-      console.error('TTS Error:', err);
-      if (this.fallbackTimeout) {
-        clearTimeout(this.fallbackTimeout);
-        this.fallbackTimeout = null;
-      }
+      if (err.error === 'interrupted') return;
+      console.warn('TTS error:', err.error);
+      this._clearTimers();
       this.isSpeaking = false;
-      if (this.onEndHandler) {
-        this.onEndHandler();
-      }
+      if (this.onEndHandler) this.onEndHandler();
     };
 
     this.isSpeaking = true;
@@ -195,10 +162,7 @@ class TtsService {
   }
 
   stop() {
-    if (this.fallbackTimeout) {
-      clearTimeout(this.fallbackTimeout);
-      this.fallbackTimeout = null;
-    }
+    this._clearTimers();
     if (this.synth) {
       this.synth.cancel();
       this.isSpeaking = false;
