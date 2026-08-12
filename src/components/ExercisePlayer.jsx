@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { ttsService } from '../services/ttsService';
 import { storageService } from '../services/storageService';
 import { getDailyMission } from '../data/mockExercises';
+import { adaptGrammarForChild, formatChildName, detectGender } from '../services/genderService';
 
 export function ExercisePlayer({ profile, settings, onCompleteMission }) {
   const [exercises, setExercises] = useState([]);
@@ -13,6 +14,10 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [startTime] = useState(Date.now());
+
+  const childName = formatChildName(profile?.firstName || 'Izaia');
+  const childGender = profile?.gender || 'auto';
+  const isFem = detectGender(childName, childGender) === 'f';
 
   useEffect(() => {
     const list = getDailyMission(profile?.level || 'CE1', 5);
@@ -25,79 +30,62 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
 
   const currentEx = exercises[currentIndex];
 
+  const adaptedStimulus = currentEx.stimulusText 
+    ? adaptGrammarForChild(currentEx.stimulusText, childName, childGender)
+    : '';
+
+  const adaptedOptions = currentEx.options.map(opt => adaptGrammarForChild(opt, childName, childGender));
+  const adaptedExpected = adaptGrammarForChild(currentEx.expectedAnswer, childName, childGender);
+
   const handleSelectAnswer = (option) => {
     if (selectedOption !== null) return; // Prevent double taps
-
-    const correct = option === currentEx.expectedAnswer;
     setSelectedOption(option);
+
+    const correct = option === adaptedExpected;
     setIsCorrect(correct);
 
     if (correct) {
       setScore(prev => prev + 1);
+      confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
     }
 
-    storageService.saveResult({
-      exerciseId: currentEx.id,
-      givenAnswer: option,
-      expectedAnswer: currentEx.expectedAnswer,
-      isCorrect: correct,
-      errorTags: correct ? [] : currentEx.errorTags
-    });
-
-    // Auto advance after short delay
     setTimeout(() => {
-      if (currentIndex < exercises.length - 1) {
+      if (currentIndex + 1 < exercises.length) {
         setCurrentIndex(prev => prev + 1);
         setSelectedOption(null);
         setIsCorrect(null);
       } else {
-        // Mission finished
         setIsFinished(true);
-        const earnedStars = score + (correct ? 1 : 0) >= 4 ? 3 : 2;
-        storageService.addStars(earnedStars);
-        storageService.addBadge('Explorateur des Sons');
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        storageService.addStars(10);
+        confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 } });
       }
-    }, 1100);
+    }, 1200);
   };
 
   const playAudio = () => {
-    if (currentEx.stimulusText) {
-      ttsService.speak(currentEx.stimulusText);
-    }
+    ttsService.speak(currentEx.instruction + ' ' + (adaptedStimulus || ''));
   };
 
   return (
-    <div style={{ maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
       {!isFinished ? (
         <>
-          {/* Progress Header */}
-          <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+          {/* Mission Progress Header */}
+          <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>
               <Sparkles size={20} />
               <span>Exercice {currentIndex + 1} / {exercises.length}</span>
             </div>
-
-            <div style={{ background: 'var(--color-primary-light)', padding: '0.4rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: 700, color: 'var(--color-primary-dark)', fontSize: '0.9rem' }}>
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#D97706', background: '#FEF3C7', padding: '0.3rem 0.8rem', borderRadius: '99px' }}>
               Score : {score} ⭐
             </div>
           </div>
 
           {/* Exercise Card */}
-          <div
-            className={`dyslexia-reader-box theme-${settings.themePreset}`}
-            style={{
-              fontFamily: settings.fontFamily === 'OpenDyslexic' ? 'var(--font-opendyslexic)' : 'var(--font-lexend)',
-              fontSize: `${settings.fontSize}px`,
-              letterSpacing: `${settings.letterSpacing}px`,
-              lineHeight: settings.lineSpacing,
-              padding: '2.5rem 2rem',
-              textAlign: 'center'
-            }}
-          >
-            <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+          <div className="card" style={{ textAlign: 'center', padding: '2.5rem 1.8rem' }}>
+            <h3 style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)', marginBottom: '1rem', fontWeight: 600 }}>
               {currentEx.instruction}
-            </p>
+            </h3>
 
             {/* Audio Stimulus Trigger for Listening Exercises */}
             {currentEx.category === 'listening' && (
@@ -118,18 +106,16 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
             {/* Reading Stimulus for Reading Exercises */}
             {currentEx.category === 'reading' && (
               <div style={{ margin: '1.5rem 0', fontSize: `${settings.fontSize * 1.5}px`, fontWeight: 800, color: 'var(--color-primary-dark)', background: 'rgba(59, 130, 246, 0.08)', padding: '1.2rem', borderRadius: 'var(--radius-md)' }}>
-                {currentEx.stimulusText 
-                  ? currentEx.stimulusText.replace(/\bLina\b/gi, profile?.firstName ? (profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1).toLowerCase()) : 'Izaia') 
-                  : ''}
+                {adaptedStimulus}
               </div>
             )}
 
             {/* Answer Options Grid */}
             <div className="answer-grid">
-              {currentEx.options.map((option) => {
+              {adaptedOptions.map((option) => {
                 let statusClass = '';
                 if (selectedOption !== null) {
-                  if (option === currentEx.expectedAnswer) statusClass = 'correct';
+                  if (option === adaptedExpected) statusClass = 'correct';
                   else if (option === selectedOption) statusClass = 'incorrect';
                 }
 
@@ -152,10 +138,10 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
         <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
           <Award size={64} color="var(--color-star-gold)" style={{ margin: '0 auto 1rem' }} />
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', color: 'var(--color-primary-dark)', marginBottom: '0.5rem' }}>
-            Félicitations {profile?.firstName || 'Izaia'} ! 🎉
+            Félicitations {childName} ! 🎉
           </h2>
           <p style={{ fontSize: '1.1rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
-            Tu as terminé ta mission du jour avec brio !
+            Tu es {isFem ? 'une super lectrice' : 'un super lecteur'} ! Tu as terminé ta mission avec brio !
           </p>
 
           <div style={{ display: 'inline-flex', gap: '0.5rem', fontSize: '2.5rem', marginBottom: '2rem' }}>

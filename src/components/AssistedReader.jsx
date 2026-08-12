@@ -3,15 +3,20 @@ import { Play, Pause, Square, Volume2, Snail, FileText, Sparkles, Mic, Wand2, Sl
 import { ttsService } from '../services/ttsService';
 import { soundEffectsService } from '../services/soundEffectsService';
 import { renderColorizedText } from '../services/syllableService';
+import { adaptGrammarForChild, formatChildName } from '../services/genderService';
 
 export function AssistedReader({ profile, settings, customTexts }) {
-  const childName = profile?.firstName || 'Izaia';
+  const childName = formatChildName(profile?.firstName || 'Izaia');
+  const childGender = profile?.gender || 'auto';
+
+  const rawStory1 = "Lina lit un mot sur le mur de la chambre. Le mot est beau et brille sous le soleil. Lina sourit car elle a réussi à déchiffrer toutes les lettres sans hésiter.";
+  const story1Content = adaptGrammarForChild(rawStory1, childName, childGender);
 
   const SAMPLE_STORIES = [
     {
       id: 's1',
       title: `${childName} et le petit mot magique`,
-      content: `${childName} lit un mot sur le mur de la chambre. Le mot est beau et brille sous le soleil. ${childName} sourit car elle a réussi à déchiffrer toutes les lettres sans hésiter.`
+      content: story1Content
     },
     {
       id: 's2',

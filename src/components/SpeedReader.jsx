@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Zap, Play, Pause, RotateCcw, Eye, Clock, CheckCircle, XCircle, TrendingUp, Layers } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { soundEffectsService } from '../services/soundEffectsService';
+import { adaptGrammarForChild, formatChildName } from '../services/genderService';
 
 const TACHISTOSCOPE_BANKS = {
   confusions: [
@@ -24,7 +25,13 @@ const TACHISTOSCOPE_BANKS = {
   ]
 };
 
-export function SpeedReader({ settings, onCompleteTest }) {
+export function SpeedReader({ profile, settings, onCompleteTest }) {
+  const childName = formatChildName(profile?.firstName || 'Izaia');
+  const childGender = profile?.gender || 'auto';
+
+  const rawSpeedText = "Lina aime lire tous les jours. Elle découvre des mots magiques et des histoires passionnantes. Avec un entraînement quotidien, la lecture devient de plus en plus fluide, rapide et amusante. Chaque phrase lue est une belle victoire pour son esprit curieux.";
+  const SPEED_TEXT = adaptGrammarForChild(rawSpeedText, childName, childGender);
+
   const [activeSubTab, setActiveSubTab] = useState('pacer'); // 'pacer' | 'tachistoscope'
   
   // WPM Pacer state

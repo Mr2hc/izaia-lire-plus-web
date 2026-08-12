@@ -4,10 +4,15 @@ import { vocalRecognitionService } from '../services/vocalRecognitionService';
 import { soundEffectsService } from '../services/soundEffectsService';
 import { storageService } from '../services/storageService';
 import { ttsService } from '../services/ttsService';
+import { adaptGrammarForChild, formatChildName } from '../services/genderService';
 import confetti from 'canvas-confetti';
 
 export function VocalReader({ profile, settings, onStarsUpdate }) {
-  const childName = profile?.firstName || 'Izaia';
+  const childName = formatChildName(profile?.firstName || 'Izaia');
+  const childGender = profile?.gender || 'auto';
+
+  const rawVocalText = "Lina regarde le ciel bleu la nuit. Une brillante étoile brille dans le ciel et lui apporte un grand sourire.";
+  const vocal3Text = adaptGrammarForChild(rawVocalText, childName, childGender);
 
   const VOCAL_PRACTICE_TEXTS = [
     {
@@ -26,7 +31,7 @@ export function VocalReader({ profile, settings, onStarsUpdate }) {
       id: 'vp3',
       title: `${childName} et l'étoile magique`,
       level: 'CE2 / CM1',
-      text: `${childName} regarde le ciel bleu la nuit. Une brillante étoile brille dans le ciel et lui apporte un grand sourire.`
+      text: vocal3Text
     }
   ];
 

@@ -4,6 +4,7 @@ import { storageService } from '../services/storageService';
 
 export function OnboardingModal({ isOpen, onClose, onSaveProfile, currentProfile }) {
   const [name, setName] = useState(currentProfile?.firstName || '');
+  const [gender, setGender] = useState(currentProfile?.gender || 'auto');
   const [age, setAge] = useState(currentProfile?.age || 7);
   const [level, setLevel] = useState(currentProfile?.level || 'CE1');
 
@@ -14,6 +15,7 @@ export function OnboardingModal({ isOpen, onClose, onSaveProfile, currentProfile
     if (name.trim()) {
       const profile = storageService.saveProfile({
         firstName: name.trim(),
+        gender,
         age: Number(age),
         level
       });
@@ -33,22 +35,38 @@ export function OnboardingModal({ isOpen, onClose, onSaveProfile, currentProfile
             Bienvenue sur IZAIA Lire+ !
           </h2>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-            Configurez le profil de votre enfant pour adapter les exercices.
+            Configurez le profil de votre enfant pour adapter la grammaire des histoires et exercices.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-          <div>
-            <label className="control-label" style={{ marginBottom: '0.4rem' }}>Prénom de l'enfant</label>
-            <input
-              type="text"
-              className="btn-secondary"
-              style={{ width: '100%', padding: '0.7rem 1rem', fontSize: '1rem', borderRadius: 'var(--radius-md)' }}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex : Lina"
-              required
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.8rem' }}>
+            <div>
+              <label className="control-label" style={{ marginBottom: '0.4rem' }}>Prénom de l'enfant</label>
+              <input
+                type="text"
+                className="btn-secondary"
+                style={{ width: '100%', padding: '0.7rem 1rem', fontSize: '1rem', borderRadius: 'var(--radius-md)' }}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex : Izaia, Léo, Lina..."
+                required
+              />
+            </div>
+
+            <div>
+              <label className="control-label" style={{ marginBottom: '0.4rem' }}>Genre</label>
+              <select
+                className="btn-secondary"
+                style={{ width: '100%', padding: '0.7rem 0.5rem', borderRadius: 'var(--radius-md)', fontSize: '0.9rem' }}
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="auto">⚡ Auto</option>
+                <option value="f">♀️ Fille</option>
+                <option value="m">♂️ Garçon</option>
+              </select>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
