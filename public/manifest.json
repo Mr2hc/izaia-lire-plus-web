@@ -1,0 +1,17 @@
+{
+  "short_name": "IZAIA Lire+",
+  "name": "IZAIA Lire+ Suite Éducative Dyslexie",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F8FAFC",
+  "theme_color": "#3B82F6",
+  "display": "standalone",
+  "orientation": "any",
+  "description": "Suite éducative d'élite d'accompagnement à la lecture et d'entraînement à la vitesse de lecture pour enfants dyslexiques."
+}
