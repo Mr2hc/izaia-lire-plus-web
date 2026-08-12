@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { User, Sparkles, Check } from 'lucide-react';
 import { storageService } from '../services/storageService';
 
-export function OnboardingModal({ isOpen, onClose, onSaveProfile }) {
-  const [name, setName] = useState('Lina');
-  const [age, setAge] = useState(7);
-  const [level, setLevel] = useState('CE1');
+export function OnboardingModal({ isOpen, onClose, onSaveProfile, currentProfile }) {
+  const [name, setName] = useState(currentProfile?.firstName || '');
+  const [age, setAge] = useState(currentProfile?.age || 7);
+  const [level, setLevel] = useState(currentProfile?.level || 'CE1');
 
   if (!isOpen) return null;
 

@@ -20,8 +20,13 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
+    const hasCustomProfile = !!localStorage.getItem('izaia_child_profile');
     const loadedProfile = storageService.getProfile();
     setProfile(loadedProfile);
+
+    if (!hasCustomProfile) {
+      setShowOnboarding(true);
+    }
 
     const loadedCustomTexts = storageService.getCustomTexts();
     setCustomTexts(loadedCustomTexts);
@@ -64,6 +69,7 @@ export default function App() {
         profile={profile}
         toggleAccessibility={() => setShowAccessibility(!showAccessibility)}
         openPinModal={() => setActiveTab('parent')}
+        onEditProfile={() => setShowOnboarding(true)}
       />
 
       {/* Accessibility Control Drawer */}
@@ -129,11 +135,12 @@ export default function App() {
         <p style={{ marginTop: '0.4rem', fontSize: '0.75rem' }}>Conçu pour une utilisation sur Web, PWA et application de bureau autonome.</p>
       </footer>
 
-      {/* Onboarding Modal if needed */}
+      {/* Onboarding / Profile Edit Modal */}
       <OnboardingModal
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         onSaveProfile={(p) => setProfile(p)}
+        currentProfile={profile}
       />
     </div>
   );

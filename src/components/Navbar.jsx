@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Zap, Award, Lock, Sliders, Sparkles, Gamepad2, Mic, Cloud, CloudOff } from 'lucide-react';
+import { BookOpen, Zap, Award, Lock, Sliders, Sparkles, Gamepad2, Mic, Cloud, CloudOff, User, Edit3 } from 'lucide-react';
 import { cloudSyncService } from '../services/cloudSyncService';
 
-export function Navbar({ activeTab, setActiveTab, profile, toggleAccessibility, openPinModal }) {
+export function Navbar({ activeTab, setActiveTab, profile, toggleAccessibility, openPinModal, onEditProfile }) {
   const [cloudState, setCloudState] = useState({
     isOnline: cloudSyncService.isOnline,
     syncStatus: cloudSyncService.syncStatus
@@ -76,6 +76,18 @@ export function Navbar({ activeTab, setActiveTab, profile, toggleAccessibility, 
         </nav>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          {/* Child Profile Button / Edit Name */}
+          <button
+            className="btn btn-secondary"
+            onClick={onEditProfile}
+            style={{ padding: '0.4rem 0.8rem', fontSize: '0.88rem', gap: '0.4rem', background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE' }}
+            title="Cliquez pour changer le prénom de l'enfant"
+          >
+            <User size={16} />
+            <span style={{ fontWeight: 700 }}>{profile?.firstName || 'Élève'}</span>
+            <Edit3 size={14} style={{ opacity: 0.7 }} />
+          </button>
+
           {/* Cloud Sync Status Indicator */}
           <div
             style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', color: cloudState.isOnline ? '#10B981' : '#64748B', fontWeight: 600, background: '#F8FAFC', padding: '0.35rem 0.7rem', borderRadius: '99px', border: '1px solid #E2E8F0' }}
