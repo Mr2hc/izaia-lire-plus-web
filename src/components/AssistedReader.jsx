@@ -4,21 +4,23 @@ import { ttsService } from '../services/ttsService';
 import { soundEffectsService } from '../services/soundEffectsService';
 import { renderColorizedText } from '../services/syllableService';
 
-const SAMPLE_STORIES = [
-  {
-    id: 's1',
-    title: 'Lina et le petit mot magique',
-    content: 'Lina lit un mot sur le mur de la chambre. Le mot est beau et brille sous le soleil. Lina sourit car elle a réussi à déchiffrer toutes les lettres sans hésiter.'
-  },
-  {
-    id: 's2',
-    title: 'Le voyage du renard volant',
-    content: 'Un petit renard roux saute par-dessus la rivière bleu clair. Il écoute le chant des oiseaux dans la grande forêt verte. Les papillons dansent autour de lui.'
-  }
-];
+export function AssistedReader({ profile, settings, customTexts }) {
+  const childName = profile?.firstName || 'Izaia';
 
-export function AssistedReader({ settings, customTexts }) {
-  const [currentText, setCurrentText] = useState(SAMPLE_STORIES[0].content);
+  const SAMPLE_STORIES = [
+    {
+      id: 's1',
+      title: `${childName} et le petit mot magique`,
+      content: `${childName} lit un mot sur le mur de la chambre. Le mot est beau et brille sous le soleil. ${childName} sourit car elle a réussi à déchiffrer toutes les lettres sans hésiter.`
+    },
+    {
+      id: 's2',
+      title: 'Le voyage du renard volant',
+      content: 'Un petit renard roux saute par-dessus la rivière bleu clair. Il écoute le chant des oiseaux dans la grande forêt verte. Les papillons dansent autour de lui.'
+    }
+  ];
+
+  const [currentText, setCurrentText] = useState(() => SAMPLE_STORIES[0].content);
   const [customInput, setCustomInput] = useState('');
   const [isReading, setIsReading] = useState(false);
   const [highlightWordIndex, setHighlightWordIndex] = useState(-1);

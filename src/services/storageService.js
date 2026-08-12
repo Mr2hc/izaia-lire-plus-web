@@ -9,7 +9,7 @@ const KEYS = {
 };
 
 const DEFAULT_PROFILE = {
-  firstName: 'Lina',
+  firstName: 'Izaia',
   age: 7,
   level: 'CE1',
   sessionDuration: 10,
@@ -37,7 +37,7 @@ const DEFAULT_CUSTOM_TEXTS = [
     id: 'text_1',
     title: 'Le chat et le petit souriceau',
     category: 'Lecture plaisir',
-    content: 'Lina observe le chat gris dans le jardin. Le petit chat saute doucement au-dessus de l\'herbe verte. Il cherche son jouet préféré.'
+    content: 'Izaia observe le chat gris dans le jardin. Le petit chat saute doucement au-dessus de l\'herbe verte. Il cherche son jouet préféré.'
   },
   {
     id: 'text_2',

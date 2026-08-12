@@ -6,29 +6,31 @@ import { storageService } from '../services/storageService';
 import { ttsService } from '../services/ttsService';
 import confetti from 'canvas-confetti';
 
-const VOCAL_PRACTICE_TEXTS = [
-  {
-    id: 'vp1',
-    title: 'Le petit lapin blanc',
-    level: 'CP / CE1',
-    text: 'Le petit lapin blanc saute dans le grand jardin. Il mange une bonne carotte orange sous le beau soleil.'
-  },
-  {
-    id: 'vp2',
-    title: 'Le voyage du renard',
-    level: 'CE1 / CE2',
-    text: 'Un renard roux marche doucement près de la rivière. Les petits oiseaux chantent haut dans les grands arbres verts.'
-  },
-  {
-    id: 'vp3',
-    title: 'Lina et l\'étoile magique',
-    level: 'CE2 / CM1',
-    text: 'Lina regarde le ciel bleu la nuit. Une brillante étoile brille dans le ciel et lui apporte un grand sourire.'
-  }
-];
+export function VocalReader({ profile, settings, onStarsUpdate }) {
+  const childName = profile?.firstName || 'Izaia';
 
-export function VocalReader({ settings, onStarsUpdate }) {
-  const [selectedText, setSelectedText] = useState(VOCAL_PRACTICE_TEXTS[0]);
+  const VOCAL_PRACTICE_TEXTS = [
+    {
+      id: 'vp1',
+      title: 'Le petit lapin blanc',
+      level: 'CP / CE1',
+      text: 'Le petit lapin blanc saute dans le grand jardin. Il mange une bonne carotte orange sous le beau soleil.'
+    },
+    {
+      id: 'vp2',
+      title: 'Le voyage du renard',
+      level: 'CE1 / CE2',
+      text: 'Un renard roux marche doucement près de la rivière. Les petits oiseaux chantent haut dans les grands arbres verts.'
+    },
+    {
+      id: 'vp3',
+      title: `${childName} et l'étoile magique`,
+      level: 'CE2 / CM1',
+      text: `${childName} regarde le ciel bleu la nuit. Une brillante étoile brille dans le ciel et lui apporte un grand sourire.`
+    }
+  ];
+
+  const [selectedText, setSelectedText] = useState(() => VOCAL_PRACTICE_TEXTS[0]);
   const [isListening, setIsListening] = useState(false);
   const [spokenTranscript, setSpokenTranscript] = useState('');
   const [recognizedWords, setRecognizedWords] = useState(new Set());

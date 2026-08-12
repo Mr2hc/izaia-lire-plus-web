@@ -3,8 +3,6 @@ import { Zap, Play, Pause, RotateCcw, Eye, Clock, CheckCircle, XCircle, Trending
 import { storageService } from '../services/storageService';
 import { soundEffectsService } from '../services/soundEffectsService';
 
-const SPEED_TEXT = `Lina aime lire tous les jours. Elle découvre des mots magiques et des histoires passionnantes. Avec un entraînement quotidien, la lecture devient de plus en plus fluide, rapide et amusante. Chaque phrase lue est une belle victoire pour son esprit curieux.`;
-
 const TACHISTOSCOPE_BANKS = {
   confusions: [
     { word: 'balle', options: ['balle', 'dalle', 'palle', 'talle'] },

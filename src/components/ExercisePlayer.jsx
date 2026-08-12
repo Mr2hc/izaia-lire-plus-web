@@ -118,7 +118,7 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
             {/* Reading Stimulus for Reading Exercises */}
             {currentEx.category === 'reading' && (
               <div style={{ margin: '1.5rem 0', fontSize: `${settings.fontSize * 1.5}px`, fontWeight: 800, color: 'var(--color-primary-dark)', background: 'rgba(59, 130, 246, 0.08)', padding: '1.2rem', borderRadius: 'var(--radius-md)' }}>
-                {currentEx.stimulusText}
+                {currentEx.stimulusText ? currentEx.stimulusText.replace(/\bLina\b/g, profile?.firstName || 'Izaia') : ''}
               </div>
             )}
 
@@ -150,7 +150,7 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
         <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
           <Award size={64} color="var(--color-star-gold)" style={{ margin: '0 auto 1rem' }} />
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', color: 'var(--color-primary-dark)', marginBottom: '0.5rem' }}>
-            Félicitations {profile?.firstName || 'Lina'} ! 🎉
+            Félicitations {profile?.firstName || 'Izaia'} ! 🎉
           </h2>
           <p style={{ fontSize: '1.1rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
             Tu as terminé ta mission du jour avec brio !

@@ -92,6 +92,7 @@ export default function App() {
 
         {activeTab === 'reader' && (
           <AssistedReader
+            profile={profile}
             settings={settings}
             customTexts={customTexts}
           />
@@ -99,6 +100,7 @@ export default function App() {
 
         {activeTab === 'vocal' && (
           <VocalReader
+            profile={profile}
             settings={settings}
             onStarsUpdate={() => setProfile(storageService.getProfile())}
           />
@@ -106,6 +108,7 @@ export default function App() {
 
         {activeTab === 'speed' && (
           <SpeedReader
+            profile={profile}
             settings={settings}
             onCompleteTest={() => setProfile(storageService.getProfile())}
           />
