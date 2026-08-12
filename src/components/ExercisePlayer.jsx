@@ -118,7 +118,9 @@ export function ExercisePlayer({ profile, settings, onCompleteMission }) {
             {/* Reading Stimulus for Reading Exercises */}
             {currentEx.category === 'reading' && (
               <div style={{ margin: '1.5rem 0', fontSize: `${settings.fontSize * 1.5}px`, fontWeight: 800, color: 'var(--color-primary-dark)', background: 'rgba(59, 130, 246, 0.08)', padding: '1.2rem', borderRadius: 'var(--radius-md)' }}>
-                {currentEx.stimulusText ? currentEx.stimulusText.replace(/\bLina\b/g, profile?.firstName || 'Izaia') : ''}
+                {currentEx.stimulusText 
+                  ? currentEx.stimulusText.replace(/\bLina\b/gi, profile?.firstName ? (profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1).toLowerCase()) : 'Izaia') 
+                  : ''}
               </div>
             )}
 

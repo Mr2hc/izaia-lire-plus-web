@@ -130,12 +130,12 @@ export const EXERCISES = [
     instruction: 'Lis la phrase et choisis ce qu\'elle veut dire.',
     stimulusText: 'Lina lit un mot.',
     options: [
-      'Une fille lit.',
+      'Un enfant lit.',
       'Un garçon court.',
       'Un chien dort.',
-      'Une fille chante.'
+      'Un oiseau chante.'
     ],
-    expectedAnswer: 'Une fille lit.',
+    expectedAnswer: 'Un enfant lit.',
     targetSkill: 'sentence_comprehension',
     errorTags: ['erreur_comprehension_phrase']
   },

@@ -77,6 +77,7 @@ export default function App() {
         <DyslexiaControls
           settings={settings}
           updateSettings={updateSettings}
+          onClose={() => setShowAccessibility(false)}
         />
       )}
 

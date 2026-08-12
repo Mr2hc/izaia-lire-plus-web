@@ -2,7 +2,7 @@ import React from 'react';
 import { Type, Eye, Palette, Space, Volume2, VolumeX } from 'lucide-react';
 import { soundEffectsService } from '../services/soundEffectsService';
 
-export function DyslexiaControls({ settings, updateSettings }) {
+export function DyslexiaControls({ settings, updateSettings, onClose }) {
   const fonts = [
     { name: 'Lexend', label: 'Lexend (Recommandé)' },
     { name: 'OpenDyslexic', label: 'OpenDyslexic' },
@@ -25,6 +25,22 @@ export function DyslexiaControls({ settings, updateSettings }) {
 
   return (
     <div className="accessibility-bar">
+      <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.5rem', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
+          <Sliders size={18} />
+          <span>Réglages & Confort Dyslexie</span>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: '0.2rem 0.5rem', fontSize: '1.1rem', fontWeight: 700 }}
+            title="Fermer le panneau"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       <div className="accessibility-grid">
         {/* Police */}
         <div className="control-group">
@@ -117,7 +133,7 @@ export function DyslexiaControls({ settings, updateSettings }) {
           <label className="control-label">
             <span><Eye size={14} /> Aides & Sons</span>
           </label>
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             <button
               className={`btn ${settings.showRuler ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
