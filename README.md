@@ -1,16 +1,57 @@
-# React + Vite
+# 📖 IZAIA Lire Plus Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Application web et mobile d'accompagnement éducatif pour l'entraînement de la lecture, spécialement conçue pour les enfants dyslexiques de 6 à 11 ans.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Guide de Démarrage Rapide (PC Distant 2 / Nouveaux Développeurs)
 
-## React Compiler
+### 1. Clonage du dépôtt
+```bash
+git clone https://github.com/Mr2hc/izaia-lire-plus-web.git
+cd izaia-lire-plus-web
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Installation des dépendances
+```bash
+npm install
+```
 
-## Expanding the Oxlint configuration
+### 3. Lancement en serveur de développement local
+```bash
+npm run dev
+```
+L'application s'ouvrira sur `http://localhost:5173`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+---
+
+## 🛠️ Commandes Principales
+
+- `npm run dev` : Démarre le serveur local Vite avec rechargement à chaud (HMR).
+- `npm run build` : Compile le projet pour la production dans le dossier `dist/`.
+- `npm run preview` : Prévisualise le build de production localement.
+
+---
+
+## 🔄 Synchronisation avec Git
+
+Avant de travailler :
+```bash
+git pull origin master
+```
+
+Après vos modifications :
+```bash
+git add .
+git commit -m "feat: description de vos modifications"
+git push origin master
+```
+
+---
+
+## ✨ Fonctionnalités Majeures Intégrées
+
+- **Synthèse Vocale & Synchronisation TTS** : Surlignage dynamique mot par mot et timing adaptatif par caractères.
+- **Panneau d'Accessibilité Dyslexie** : Personnalisation de la police (OpenDyslexic, Lexend), de la taille, de l'interlignage et des contrastes.
+- **Moteur d'Accord Grammatical** : Accord automatique au masculin/féminin selon le prénom de l'enfant dans les exercices.
+- **Formatage des Prénoms** : Capitalisation automatique (Titlecase) dans l'interface.
